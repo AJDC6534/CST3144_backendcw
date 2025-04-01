@@ -1,0 +1,110 @@
+[{
+  "_id": {
+    "$oid": "67e8739eb20bbfeee2148640"
+  },
+  "id": 1001,
+  "title": "Table Tennis",
+  "location": "Deira, Dubai",
+  "price": 500,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/tabletennis.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e873ebb20bbfeee2148642"
+  },
+  "id": 1002,
+  "title": "Arts and Crafts",
+  "location": "Dubai Internet City",
+  "price": 1500,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/artsandcraft.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e873fdb20bbfeee2148645"
+  },
+  "id": 1003,
+  "title": "Volleyball",
+  "location": "Ras Al Khaimah",
+  "price": 3000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/volleyball.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e8741bb20bbfeee2148647"
+  },
+  "id": 1004,
+  "title": "Badminton",
+  "location": "Abu Dhabi",
+  "price": 1000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/badminton.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e87434b20bbfeee2148649"
+  },
+  "id": 1005,
+  "title": "Chess",
+  "location": "Sharjah",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/chess.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e87453b20bbfeee214864b"
+  },
+  "id": 1006,
+  "title": "Dance",
+  "location": "Ajman",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/dance.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e87462b20bbfeee214864d"
+  },
+  "id": 1007,
+  "title": "Karate",
+  "location": "Al Barsha 1",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/karate.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e87474b20bbfeee214864f"
+  },
+  "id": 1008,
+  "title": "Robotics",
+  "location": "Oud Metha",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/robotics.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e87481b20bbfeee2148651"
+  },
+  "id": 1009,
+  "title": "Cooking",
+  "location": "Jumeirah",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/cooking.jpg",
+  "spaces": 5
+},
+{
+  "_id": {
+    "$oid": "67e8748eb20bbfeee2148653"
+  },
+  "id": 1010,
+  "title": "Music",
+  "location": "Satwa",
+  "price": 2000,
+  "image": "C:/Users/Student/Documents/After school Activities/frontend/images/music.jpg",
+  "spaces": 5
+}]
