@@ -226,38 +226,24 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
 });
 
         //search as u type function
-        app.get('/collection/:collectionName/search', async (req, res) => {
+        app.get('/collection/:collectionName', async (req, res) => {
             try {
                 if (!db) return res.status(500).send({ error: "Database not connected!" });
         
                 const { collectionName } = req.params;
-                const { q } = req.query;
-        
-                if (!q) return res.status(400).send({ error: "Search query is required!" });
-        
-                logActivity("🔍 Searching in collection:", collectionName);
-                logActivity("🔎 Query:", q);
+                console.log(`Fetching all documents from ${collectionName}...`);
         
                 const collection = db.collection(collectionName);
+                const results = await collection.find({}).limit(10).toArray(); // Fetch all documents
         
-                // Case-insensitive regex search in relevant fields
-                const searchRegex = new RegExp(q, 'i');
-                const results = await collection.find({
-                    $or: [
-                        { title: searchRegex },  
-                        { location: searchRegex },
-                        { description: searchRegex }
-                    ]
-                }).limit(10).toArray(); // Limit results to 10 for efficiency
-        
-                logActivity("✅ Search results:", results);
+                console.log("✅ Documents fetched:", results);
                 res.send(results);
             } catch (err) {
-                logActivity("❌ Error searching documents:", err);
-                console.error(err);  // Log the full error for debugging
-                res.status(500).send({ error: "Failed to search documents!" });
+                console.error("❌ Error fetching documents:", err);
+                res.status(500).send({ error: "Failed to fetch documents!" });
             }
         });
+        
         
         
         
