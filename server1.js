@@ -3,10 +3,23 @@ const MongoClient = require('mongodb').MongoClient;
 const path = require('path');
 
 const app = express();
-const cors = require('cors');
-app.use(cors());
 app.use(express.json());
 app.set('port', 3000);
+
+function logActivity(activity, details = "") {
+    const time = new Date();
+    const formattedTime = time.toLocaleString("en-US", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  
+    const logMessage = `[${formattedTime}] ${activity}${details ? ` | ${details}` : ""}`;
+    console.log(logMessage);
+  }
 
 // CORS Middleware
 app.use((req, res, next) => {
@@ -20,15 +33,26 @@ app.use((req, res, next) => {
 MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qqzgrz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-AfterSchoolActivities', { useUnifiedTopology: true })
     .then(client => {
         db = client.db('webstore');
-        console.log("Connected to MongoDB successfully!");
+        logActivity("Connected to MongoDB successfully!");
         app.listen(app.get('port'), () => {
-            console.log(`Express.js server running at http://localhost:${app.get('port')}`);
+            logActivity(`Express.js server running at http://localhost:${app.get('port')}`);
         });
     })
     .catch(err => {
-        console.error("Error connecting to MongoDB:", err);
+        logActivity("Error connecting to MongoDB:", err);
         process.exit(1); // Exit process if DB connection fails
     });
+
+    const imagesPath = path.join(__dirname, "images");
+app.use("/static", express.static(imagesPath));
+
+// Example Endpoint to Test Static Files
+app.get("/test-image", (req, res) => {
+  logActivity("Info", "Test image endpoint hit");
+  res.send({
+    imageUrl: `${req.protocol}://${req.get("host")}/static/tabletennis.jpg`, // Replace "example.jpg" with your image filename
+  });
+});
 
 
 // Middleware to Validate and Attach Collection
@@ -49,7 +73,7 @@ app.param('collectionName', async (req, res, next, collectionName) => {
         req.collection = db.collection(collectionName);
         return next();
     } catch (err) {
-        console.error("❌ Error in param handling:", err);
+        logActivity("❌ Error in param handling:", err);
         return res.status(500).send({ error: "Error while processing the collection name!" });
     }
 });
@@ -60,14 +84,14 @@ app.get('/collection/:collectionName', async (req, res, next) => {
     try {
         if (!db) return res.status(500).send({ error: "Database not connected!" });
 
-        console.log("🟢 Fetching collection:", req.params.collectionName);
+        logActivity("🟢 Fetching collection:", req.params.collectionName);
         const collection = db.collection(req.params.collectionName);
 
         const results = await collection.find({}).maxTimeMS(5000).toArray(); // Add timeout
-        console.log("✅ Data fetched successfully:", results);
+        logActivity("✅ Data fetched successfully:", results);
         res.send(results);
     } catch (err) {
-        console.error("❌ Timeout/Error fetching data:", err);
+        logActivity("❌ Timeout/Error fetching data:", err);
         res.status(500).send({ error: "Database request timed out!" });
     }
 });
@@ -79,7 +103,7 @@ app.post('/collection/:collectionName', async (req, res, next) => {
             return res.status(500).send({ error: "Database not connected!" });
         }
 
-        console.log("🟢 Received data for insertion:", req.body);
+        logActivity("🟢 Received data for insertion:", req.body);
 
         const collection = db.collection(req.params.collectionName);
         const result = await collection.insertOne(req.body);
@@ -87,10 +111,10 @@ app.post('/collection/:collectionName', async (req, res, next) => {
         // Access the inserted document directly from the result
         const insertedDocument = result.ops ? result.ops[0] : result; // For MongoDB v4.x or newer
 
-        console.log("✅ Document inserted:", insertedDocument);
+        logActivity("✅ Document inserted:", insertedDocument);
         res.status(201).send(insertedDocument); // Send the inserted document back
     } catch (err) {
-        console.error("❌ Error inserting document:", err);
+        logActivity("❌ Error inserting document:", err);
         res.status(500).send({ error: "Failed to insert document!" });
     }
 });
@@ -105,8 +129,8 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
         }
 
         const { collectionName, id } = req.params;
-        console.log("🟢 Fetching document from collection:", collectionName);
-        console.log("🔍 Document ID:", id);
+        logActivity("🟢 Fetching document from collection:", collectionName);
+        logActivity("🔍 Document ID:", id);
 
         // Convert the string ID to an ObjectId
         const objectId = new ObjectId(id);  // Correct usage of ObjectId
@@ -119,10 +143,10 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
             return res.status(404).send({ error: 'Document not found!' });
         }
 
-        console.log("✅ Document fetched:", result);
+        logActivity("✅ Document fetched:", result);
         res.send(result);
     } catch (err) {
-        console.error("❌ Error fetching document:", err);
+        logActivity("❌ Error fetching document:", err);
         res.status(500).send({ error: 'Failed to fetch document!' });
     }
 });
@@ -136,8 +160,8 @@ app.put('/collection/:collectionName/:id', async (req, res, next) => {
         }
 
         const { collectionName, id } = req.params;
-        console.log("🟢 Updating document in collection:", collectionName);
-        console.log("🔍 Document ID:", id);
+        logActivity("🟢 Updating document in collection:", collectionName);
+        logActivity("🔍 Document ID:", id);
 
         // Convert the string ID to an ObjectId
         const objectId = new ObjectId(id);  // Correct usage of ObjectId
@@ -170,10 +194,10 @@ app.put('/collection/:collectionName/:id', async (req, res, next) => {
             return res.status(404).send({ error: "Document not found!" });
         }
 
-        console.log("✅ Document updated:", result);
+        logActivity("✅ Document updated:", result);
         res.send({ msg: 'success', updatedCount: result.modifiedCount });
     } catch (err) {
-        console.error("❌ Error updating document:", err);
+        logActivity("❌ Error updating document:", err);
         res.status(500).send({ error: "Failed to update document!" });
     }
 });
@@ -188,8 +212,8 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
         }
 
         const { collectionName, id } = req.params;
-        console.log("🟢 Deleting document from collection:", collectionName);
-        console.log("🔍 Document ID:", id);
+        logActivity("🟢 Deleting document from collection:", collectionName);
+        logActivity("🔍 Document ID:", id);
 
         // Convert the string ID to an ObjectId
         const objectId = new ObjectId(id);  // Correct usage of ObjectId
@@ -205,10 +229,10 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
             return res.status(404).send({ error: "Document not found!" });
         }
 
-        console.log("✅ Document deleted:", result);
+        logActivity("✅ Document deleted:", result);
         res.send({ msg: 'success', deletedCount: result.deletedCount });
     } catch (err) {
-        console.error("❌ Error deleting document:", err);
+        logActivity("❌ Error deleting document:", err);
         res.status(500).send({ error: "Failed to delete document!" });
     }
 });
