@@ -226,36 +226,50 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
 });
 
         //search as u type function
-        app.get("/log-search", async (req, res) => {
-            try {
-                if (!db) {
-                    logActivity("Error", "Database not connected!");
-                    return res.status(500).send({ msg: "Database not connected!" });
-                }
-        
-                const searchQuery = req.query.query?.trim();
-                if (!searchQuery) {
-                    logActivity("Warning", "Search query is missing in the request parameters");
-                    return res.status(400).send({ msg: "Search query is required" });
-                }
-        
-                logActivity("Info", `Search activity recorded: ${searchQuery}`);
-        
-                // Ensure the query is only looking for title and location
-                const results = await db.collection("products").find({
-                    $or: [
-                        { title: { $regex: searchQuery, $options: "i" } },   // Search for 'title'
-                        { location: { $regex: searchQuery, $options: "i" } }  // Search for 'location'
-                    ]
-                }).toArray();
-        
-                logActivity("Info", `Search results for '${searchQuery}': ${results.length} items found`);
-                res.send(results);
-            } catch (error) {
-                logActivity("Error", `Error fetching search results: ${error.message}`);
-                res.status(500).send({ msg: "Error fetching search results" });
-            }
-        });
+        // Search as You Type Endpoint
+app.get('/search/:collectionName', async (req, res, next) => {
+    try {
+        if (!db) {
+            return res.status(500).send({ error: "Database not connected!" });
+        }
+
+        const { collectionName } = req.params;
+        const { query } = req.query;
+
+        if (!query || query.trim() === "") {
+            return res.status(400).send({ error: "Query parameter is required!" });
+        }
+
+        logActivity("🔍 Performing search in collection:", products);
+        logActivity("🔎 Search Query:", query);
+
+        const collection = db.collection(products);
+
+        // Perform case-insensitive search
+        const results = await collection.find({
+            $text: { $search: query }
+        }).toArray();
+
+        logActivity("✅ Search results found:", results);
+        res.send(results);
+    } catch (err) {
+        logActivity("❌ Error during search:", err);
+        res.status(500).send({ error: "Failed to perform search!" });
+    }
+});
+
+// Ensure the collection has a text index
+async function ensureTextIndex(products) {
+    try {
+        const collection = db.collection(products);
+        await collection.createIndex({ "name": "text", "description": "text" }); // Adjust fields as needed
+        logActivity(`✅ Text index created for ${products}`);
+    } catch (err) {
+        logActivity("❌ Error creating text index:", err);
+    }
+}
+
+ 
         
           
         
