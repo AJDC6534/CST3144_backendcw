@@ -240,11 +240,12 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
         
                 const collection = db.collection(collectionName);
         
-                // Case-insensitive regex search in multiple fields
+                // Case-insensitive regex search in relevant fields
                 const searchRegex = new RegExp(q, 'i');
                 const results = await collection.find({
                     $or: [
-                        { name: searchRegex },  
+                        { title: searchRegex },  
+                        { location: searchRegex },
                         { description: searchRegex }
                     ]
                 }).limit(10).toArray(); // Limit results to 10 for efficiency
@@ -256,5 +257,6 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
                 res.status(500).send({ error: "Failed to search documents!" });
             }
         });
+        
         
 
