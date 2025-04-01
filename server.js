@@ -43,18 +43,6 @@ MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qq
         process.exit(1); // Exit process if DB connection fails
     });
 
-    const imagesPath = path.join(__dirname, "images");
-app.use("/static", express.static(imagesPath));
-
-// Example Endpoint to Test Static Files
-app.get("/test-image", (req, res) => {
-  logActivity("Info", "Test image endpoint hit");
-  res.send({
-    imageUrl: `${req.protocol}://${req.get("host")}/static/tabletennis.jpg`, // Replace "example.jpg" with your image filename
-  });
-});
-
-
 // Middleware to Validate and Attach Collection
 app.param('collectionName', async (req, res, next, collectionName) => {
     try {
@@ -237,5 +225,36 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
     }
 });
 
-
+        //search as u type function
+        app.get('/collection/:collectionName/search', async (req, res) => {
+            try {
+                if (!db) return res.status(500).send({ error: "Database not connected!" });
+        
+                const { collectionName } = req.params;
+                const { q } = req.query;
+        
+                if (!q) return res.status(400).send({ error: "Search query is required!" });
+        
+                logActivity("🔍 Searching in collection:", collectionName);
+                logActivity("🔎 Query:", q);
+        
+                const collection = db.collection(collectionName);
+        
+                // Case-insensitive regex search in multiple fields
+                const searchRegex = new RegExp(q, 'i');
+                const results = await collection.find({
+                    $or: [
+                        { name: searchRegex },  
+                        { description: searchRegex }
+                    ]
+                }).limit(10).toArray(); // Limit results to 10 for efficiency
+        
+                logActivity("✅ Search results:", results);
+                res.send(results);
+            } catch (err) {
+                logActivity("❌ Error searching documents:", err);
+                res.status(500).send({ error: "Failed to search documents!" });
+            }
+        });
+        
 
