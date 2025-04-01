@@ -226,43 +226,36 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
 });
 
         //search as u type function
-        app.get('/collection/:collectionName/search', async (req, res) => {
+        app.get("/log-search", async (req, res) => {
             try {
-                if (!db) {
-                    console.error("❌ Database is not connected!");
-                    return res.status(500).send({ error: "Database not connected!" });
-                }
-        
-                const { collectionName } = req.params;
-                const { q } = req.query;
-        
-                if (!q) {
-                    console.error("❌ Search query is missing!");
-                    return res.status(400).send({ error: "Search query is required!" });
-                }
-        
-                console.log(`🔍 Searching in collection: ${collectionName}`);
-                console.log(`🔎 Query: ${q}`);
-        
-                const collection = db.collection(collectionName);
-        
-                // Case-insensitive regex search
-                const searchRegex = new RegExp(q, 'i');
-                const results = await collection.find({
-                    $or: [
-                        { title: searchRegex },  
-                        { location: searchRegex },
-                        { description: searchRegex }
-                    ]
-                }).limit(10).toArray(); 
-        
-                console.log("✅ Search results:", results);
-                res.send(results);
-            } catch (err) {
-                console.error("❌ Error fetching document:", err);
-                res.status(500).send({ error: "Failed to fetch document!" });
+              if (!db) {
+                logActivity("Error", "Database not connected!");
+                return res.status(500).send({ msg: "Database not connected!" });
+              }
+          
+              const searchQuery = req.query.query?.trim();
+              if (!searchQuery) {
+                logActivity("Warning", "Search query is missing in the request parameters");
+                return res.status(400).send({ msg: "Search query is required" });
+              }
+          
+              logActivity("Info", `Search activity recorded: ${searchQuery}`);
+          
+              const results = await db.collection("products").find({
+                $or: [
+                  { title: { $regex: searchQuery, $options: "i" } },
+                  { description: { $regex: searchQuery, $options: "i" } },
+                ],
+              }).toArray();
+          
+              logActivity("Info", `Search results for '${searchQuery}': ${results.length} items found`);
+              res.send(results);
+            } catch (error) {
+              logActivity("Error", `Error fetching search results: ${error.message}`);
+              res.status(500).send({ msg: "Error fetching search results" });
             }
-        });
+          });
+          
         
         
         
