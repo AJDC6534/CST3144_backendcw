@@ -237,11 +237,5 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
     }
 });
 
-app.use(express.static(path.join(__dirname, '"C:/Users/Student/CST3144_frontendcw/index.html"')));
-
-// Optionally, handle routing for other requests (like HTML)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', '"C:/Users/Student/CST3144_frontendcw/index.html"'));
-});
 
 
