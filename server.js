@@ -254,9 +254,11 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
                 res.send(results);
             } catch (err) {
                 logActivity("❌ Error searching documents:", err);
+                console.error(err);  // Log the full error for debugging
                 res.status(500).send({ error: "Failed to search documents!" });
             }
         });
+        
         
         
 
