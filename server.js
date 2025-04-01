@@ -226,23 +226,44 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
 });
 
         //search as u type function
-        app.get('/collection/:collectionName', async (req, res) => {
+        app.get('/collection/:collectionName/search', async (req, res) => {
             try {
-                if (!db) return res.status(500).send({ error: "Database not connected!" });
+                if (!db) {
+                    console.error("❌ Database is not connected!");
+                    return res.status(500).send({ error: "Database not connected!" });
+                }
         
                 const { collectionName } = req.params;
-                console.log(`Fetching all documents from ${collectionName}...`);
+                const { q } = req.query;
+        
+                if (!q) {
+                    console.error("❌ Search query is missing!");
+                    return res.status(400).send({ error: "Search query is required!" });
+                }
+        
+                console.log(`🔍 Searching in collection: ${collectionName}`);
+                console.log(`🔎 Query: ${q}`);
         
                 const collection = db.collection(collectionName);
-                const results = await collection.find({}).limit(10).toArray(); // Fetch all documents
         
-                console.log("✅ Documents fetched:", results);
+                // Case-insensitive regex search
+                const searchRegex = new RegExp(q, 'i');
+                const results = await collection.find({
+                    $or: [
+                        { title: searchRegex },  
+                        { location: searchRegex },
+                        { description: searchRegex }
+                    ]
+                }).limit(10).toArray(); 
+        
+                console.log("✅ Search results:", results);
                 res.send(results);
             } catch (err) {
-                console.error("❌ Error fetching documents:", err);
-                res.status(500).send({ error: "Failed to fetch documents!" });
+                console.error("❌ Error fetching document:", err);
+                res.status(500).send({ error: "Failed to fetch document!" });
             }
         });
+        
         
         
         
