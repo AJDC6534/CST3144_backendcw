@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     next();
 });
 
-MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qqzgrz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-AfterSchoolActivities', { useUnifiedTopology: true })
+MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qqzgrz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-AfterSchoolActivities',)
     .then(client => {
         db = client.db('webstore');
         logActivity("Connected to MongoDB successfully!");
