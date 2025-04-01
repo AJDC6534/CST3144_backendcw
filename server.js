@@ -226,27 +226,39 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
 });
 
         //search as u type function
-        app.get("/log-search", async (req, res) => {
+        app.use((req, res, next) => {
+            const searchRegex = /log-search/; // Matches the /log-search endpoint
+            if (searchRegex.test(req.url) && req.method === "GET") {
+              const searchQuery = req.query.query?.trim(); // Extract search query
+              if (searchQuery) {
+                logActivity("Info", `User searched for: ${searchQuery}`);
+              } else {
+                logActivity("Warning", "Search query is missing or empty");
+              }
+            }
+            next(); // Proceed to the next middleware or route handler
+          });
+          
+          // Log search activities and fetch matching results from 'products' collection
+          app.get("/log-search", async (req, res) => {
+            const searchQuery = req.query.query?.trim(); // Extract query parameter
+            if (!searchQuery) {
+              logActivity("Warning", "Search query is missing in the request parameters");
+              return res.status(400).send({ msg: "Search query is required" });
+            }
+          
+            logActivity("Info", `Search activity recorded: ${searchQuery}`);
+          
             try {
-              if (!db) {
-                logActivity("Error", "Database not connected!");
-                return res.status(500).send({ msg: "Database not connected!" });
-              }
-          
-              const searchQuery = req.query.query?.trim();
-              if (!searchQuery) {
-                logActivity("Warning", "Search query is missing in the request parameters");
-                return res.status(400).send({ msg: "Search query is required" });
-              }
-          
-              logActivity("Info", `Search activity recorded: ${searchQuery}`);
-          
-              const results = await db.collection("products").find({
-                $or: [
-                  { title: { $regex: searchQuery, $options: "i" } },
-                  { description: { $regex: searchQuery, $options: "i" } },
-                ],
-              }).toArray();
+              const results = await db
+                .collection("products")
+                .find({
+                  $or: [
+                    { title: { $regex: searchQuery, $options: "i" } }, // Case-insensitive search on 'title'
+                    { description: { $regex: searchQuery, $options: "i" } }, // Case-insensitive search on 'description'
+                  ],
+                })
+                .toArray();
           
               logActivity("Info", `Search results for '${searchQuery}': ${results.length} items found`);
               res.send(results);
@@ -254,6 +266,11 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
               logActivity("Error", `Error fetching search results: ${error.message}`);
               res.status(500).send({ msg: "Error fetching search results" });
             }
+          });
+          
+          app.get("/", (req, res) => {
+            logActivity("Info", "Root endpoint hit");
+            res.send("Select a collection, e.g., /collection/messages");
           });
           
         
