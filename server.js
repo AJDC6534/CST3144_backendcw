@@ -141,54 +141,44 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
 
 
 // Update Document by ID
-app.put('/collection/:collectionName/:id', async (req, res, next) => {
+
+app.put('/collection/products/:id', async (req, res) => {
+    const { id } = req.params;
+    const { spaces } = req.body;
+
+    console.log(`Received request to update product ${id} with new spaces: ${spaces}`); // Debugging
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid product ID format' });
+    }
+
     try {
-        if (!db) {
-            return res.status(500).send({ error: "Database not connected!" });
-        }
+        const objectId = new ObjectId(id);
+        console.log('Converted ObjectId:', objectId);
 
-        const { collectionName, id } = req.params;
-        logActivity("🟢 Updating document in collection:", collectionName);
-        logActivity("🔍 Document ID:", id);
+        const productBefore = await db.collection('products').findOne({ _id: objectId });
+        console.log('Product found before update:', productBefore);
 
-        // Convert the string ID to an ObjectId
-        const objectId = new ObjectId(id);  // Correct usage of ObjectId
-
-        const collection = db.collection(collectionName);
-
-        // Prepare the update fields (filter out any null or undefined values)
-        const updateFields = {};
-
-        for (const key in req.body) {
-            if (req.body[key] !== null && req.body[key] !== undefined) {
-                updateFields[key] = req.body[key];
-            }
-        }
-
-        // If no valid fields to update, return an error
-        if (Object.keys(updateFields).length === 0) {
-            return res.status(400).send({ error: "No valid fields to update" });
-        }
-
-        // Use the updateOne method to update the document
-        const result = await collection.updateOne(
-            { _id: objectId },  // Find the document by _id
-            { $set: updateFields }   // Update the document with valid data
+        const result = await db.collection('products').findOneAndUpdate(
+            { _id: objectId },
+            { $set: { spaces: Number(spaces) } }, // Ensure spaces is a number
+            { returnDocument: 'after' } // or use returnOriginal: false for MongoDB v3
         );
 
-        // Check if a document was matched and updated
-        if (result.matchedCount === 0) {
-            console.warn("⚠️ No document found with the provided ID.");
-            return res.status(404).send({ error: "Document not found!" });
+        if (!result.value) {
+            console.log('Product not found in database'); // Debugging
+            return res.status(404).json({ message: 'Product not found' });
         }
 
-        logActivity("✅ Document updated:", result);
-        res.send({ msg: 'success', updatedCount: result.modifiedCount });
-    } catch (err) {
-        logActivity("❌ Error updating document:", err);
-        res.status(500).send({ error: "Failed to update document!" });
+        console.log('Updated product:', result.value); // Debugging
+        res.json({ message: 'Spaces updated successfully', product: result.value });
+
+    } catch (error) {
+        console.error('Error updating product spaces:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 
 // Delete Document by ID
