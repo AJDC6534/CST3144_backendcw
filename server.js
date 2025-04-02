@@ -228,17 +228,30 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
         //search as u type function
         app.get('/collection/:collectionName/search', async (req, res) => {
             try {
-                if (!db) return res.status(500).send({ error: "Database not connected!" });
+                if (!db) {
+                    return res.status(500).send({ error: "Database not connected!" });
+                }
         
-                const collection = db.collection(req.params.collectionName);
+                const { collectionName } = req.params;
                 const query = req.query.q ? { $text: { $search: req.query.q } } : {};
+        
+                logActivity("🟢 Searching in collection:", collectionName);
+                logActivity("🔍 Search query:", req.query.q);
+        
+                const collection = db.collection(collectionName);
+        
+                // Perform the search query
                 const results = await collection.find(query).maxTimeMS(5000).toArray();
+        
+                logActivity("✅ Search results:", results.length);
         
                 res.send(results);
             } catch (err) {
+                logActivity("❌ Error searching in collection:", err);
                 res.status(500).send({ error: "Database request timed out!" });
             }
         });
+        
  
         
           
