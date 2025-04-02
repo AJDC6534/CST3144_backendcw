@@ -141,21 +141,53 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
 
 
 // Update Document by ID
-app.put("/collection/:collectionName/:id", (req, res, next) => {
-    req.collection.updateOne(
-      { _id: new ObjectID(req.params.id) },
-      { $set: req.body },
-      { safe: true },
-      (e, result) => {
-        if (e) return next(e);
-        logActivity(
-          result.matchedCount === 1 ? "Info" : "Warning",
-          `Updated document with ID: ${req.params.id}`
+
+app.put('/collection/:collectionName/:id', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).send({ error: "Database not connected!" });
+        }
+
+        const { collectionName, id } = req.params;
+        console.log("🟢 Updating document in collection:", collectionName);
+        console.log("🔍 Document ID:", id);
+
+        // Validate ID format before converting
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).send({ error: "Invalid ID format" });
+        }
+
+        const objectId = new ObjectId(id);
+        const collection = db.collection(collectionName);
+
+        // Filter out null/undefined fields
+        const updateFields = Object.fromEntries(
+            Object.entries(req.body).filter(([_, value]) => value !== null && value !== undefined)
         );
-        res.send(result.matchedCount === 1 ? { msg: "success" } : { msg: "error" });
-      }
-    );
-  });
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).send({ error: "No valid fields to update" });
+        }
+
+        // Perform update
+        const result = await collection.updateOne(
+            { _id: objectId },
+            { $set: updateFields }
+        );
+
+        console.log("MongoDB update result:", result);
+
+        if (result.matchedCount === 0) {
+            return res.status(404).send({ error: "Document not found!" });
+        }
+
+        res.send({ msg: 'success', updatedCount: result.modifiedCount });
+    } catch (err) {
+        console.error("❌ Error updating document:", err);
+        res.status(500).send({ error: "Failed to update document!" });
+    }
+});
+
 
 
 // Delete Document by ID
