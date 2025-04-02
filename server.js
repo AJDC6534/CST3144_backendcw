@@ -141,54 +141,21 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
 
 
 // Update Document by ID
-app.put('/collection/:collectionName/:id', async (req, res, next) => {
-    try {
-        if (!db) {
-            return res.status(500).send({ error: "Database not connected!" });
-        }
-
-        const { collectionName, id } = req.params;
-        logActivity("🟢 Updating document in collection:", collectionName);
-        logActivity("🔍 Document ID:", id);
-
-        // Convert the string ID to an ObjectId
-        const objectId = new ObjectId(id);  // Correct usage of ObjectId
-
-        const collection = db.collection(collectionName);
-
-        // Prepare the update fields (filter out any null or undefined values)
-        const updateFields = {};
-
-        for (const key in req.body) {
-            if (req.body[key] !== null && req.body[key] !== undefined) {
-                updateFields[key] = req.body[key];
-            }
-        }
-
-        // If no valid fields to update, return an error
-        if (Object.keys(updateFields).length === 0) {
-            return res.status(400).send({ error: "No valid fields to update" });
-        }
-
-        // Use the updateOne method to update the document
-        const result = await collection.updateOne(
-            { _id: objectId },  // Find the document by _id
-            { $set: updateFields }   // Update the document with valid data
+app.put("/collection/:collectionName/:id", (req, res, next) => {
+    req.collection.updateOne(
+      { _id: new ObjectID(req.params.id) },
+      { $set: req.body },
+      { safe: true },
+      (e, result) => {
+        if (e) return next(e);
+        logActivity(
+          result.matchedCount === 1 ? "Info" : "Warning",
+          `Updated document with ID: ${req.params.id}`
         );
-
-        // Check if a document was matched and updated
-        if (result.matchedCount === 0) {
-            console.warn("⚠️ No document found with the provided ID.");
-            return res.status(404).send({ error: "Document not found!" });
-        }
-
-        logActivity("✅ Document updated:", result);
-        res.send({ msg: 'success', updatedCount: result.modifiedCount });
-    } catch (err) {
-        logActivity("❌ Error updating document:", err);
-        res.status(500).send({ error: "Failed to update document!" });
-    }
-});
+        res.send(result.matchedCount === 1 ? { msg: "success" } : { msg: "error" });
+      }
+    );
+  });
 
 
 // Delete Document by ID
