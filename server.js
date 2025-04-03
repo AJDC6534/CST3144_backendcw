@@ -43,6 +43,13 @@ MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qq
         process.exit(1); // Exit process if DB connection fails
     });
 
+// Serve static files (Images)
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+
+app.get('/images/tabletennis.jpg', (req, res) => {
+  console.log("Request for image received");
+});
+
 // Middleware to Validate and Attach Collection
 app.param('collectionName', async (req, res, next, collectionName) => {
     try {
