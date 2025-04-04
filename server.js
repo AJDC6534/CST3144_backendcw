@@ -1,7 +1,7 @@
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const path = require('path');
-
+const { ObjectId } = require('mongodb');
 const app = express();
 app.use(express.json());
 app.set('port', 3000);
@@ -73,7 +73,6 @@ app.param('collectionName', async (req, res, next, collectionName) => {
     }
 });
 
-
 // Fetch All Documents
 app.get('/collection/:collectionName', async (req, res, next) => {
     try {
@@ -113,10 +112,7 @@ app.post('/collection/:collectionName', async (req, res, next) => {
         res.status(500).send({ error: "Failed to insert document!" });
     }
 });
-
 // Get Document by ID
-const { ObjectId } = require('mongodb');  // Correct import
-
 app.get('/collection/:collectionName/:id', async (req, res, next) => {
     try {
         if (!db) {
@@ -145,10 +141,7 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
         res.status(500).send({ error: 'Failed to fetch document!' });
     }
 });
-
-
 // Update Document by ID
-
 app.put('/collection/:collectionName/:id', async (req, res) => {
     try {
         if (!db) {
@@ -194,11 +187,7 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
         res.status(500).send({ error: "Failed to update document!" });
     }
 });
-
-
-
 // Delete Document by ID
-
 app.delete('/collection/:collectionName/:id', async (req, res, next) => {
     try {
         if (!db) {
@@ -230,40 +219,29 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
         res.status(500).send({ error: "Failed to delete document!" });
     }
 });
-
-        //search as u type function
-        app.get('/collection/:collectionName/search', async (req, res) => {
-            try {
-                if (!db) {
-                    return res.status(500).send({ error: "Database not connected!" });
-                }
+//search as u type function
+app.get('/collection/:collectionName/search', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).send({ error: "Database not connected!" });
+        }
         
-                const { collectionName } = req.params;
-                const query = req.query.q ? { $text: { $search: req.query.q } } : {};
+        const { collectionName } = req.params;
+        const query = req.query.q ? { $text: { $search: req.query.q } } : {};
         
-                logActivity("🟢 Searching in collection:", collectionName);
-                logActivity("🔍 Search query:", req.query.q);
+        logActivity("🟢 Searching in collection:", collectionName);
+        logActivity("🔍 Search query:", req.query.q);
         
-                const collection = db.collection(collectionName);
+        const collection = db.collection(collectionName);
         
                 // Perform the search query
-                const results = await collection.find(query).maxTimeMS(5000).toArray();
+        const results = await collection.find(query).maxTimeMS(5000).toArray();
         
-                logActivity("✅ Search results:", results.length);
+        logActivity("✅ Search results:", results.length);
         
-                res.send(results);
-            } catch (err) {
-                logActivity("❌ Error searching in collection:", err);
-                res.status(500).send({ error: "Database request timed out!" });
-            }
-        });
-        
- 
-        
-          
-        
-        
-        
-        
-        
-
+            res.send(results);
+    } catch (err) {
+        logActivity("❌ Error searching in collection:", err);
+        res.status(500).send({ error: "Database request timed out!" });
+    }
+});
