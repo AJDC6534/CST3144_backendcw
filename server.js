@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qqzgrz9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-AfterSchoolActivities',)
     .then(client => {
         db = client.db('webstore');
-        logActivity("Connected to MongoDB successfully!");
+            logActivity("Connected to MongoDB successfully!");
         app.listen(app.get('port'), () => {
             logActivity(`Express.js server running at http://localhost:${app.get('port')}`);
         });
@@ -51,7 +51,7 @@ app.get('/', (req, res, next,) => {
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 app.get('/images/tabletennis.jpg', (req, res) => {
-  console.log("Request for image received");
+    logActivity("Request for image received");
 });
 
 // Middleware to Validate and Attach Collection
@@ -223,29 +223,71 @@ app.delete('/collection/:collectionName/:id', async (req, res, next) => {
         res.status(500).send({ error: "Failed to delete document!" });
     }
 });
-//search as u type function
+
 app.get('/collection/:collectionName/search', async (req, res) => {
     try {
         if (!db) {
             return res.status(500).send({ error: "Database not connected!" });
         }
-        
+
         const { collectionName } = req.params;
-        const query = req.query.q ? { $text: { $search: req.query.q } } : {};
-        
-        logActivity("🟢 Searching in collection:", collectionName);
-        logActivity("🔍 Search query:", req.query.q);
-        
+        const { q, sort } = req.query;
+
         const collection = db.collection(collectionName);
-        
-                // Perform the search query
-        const results = await collection.find(query).maxTimeMS(5000).toArray();
-        
-        logActivity("✅ Search results:", results.length);
-        
-            res.send(results);
+
+        // Build the search query
+        const query = q ? { $text: { $search: q } } : {};
+
+        // Build the sort option (if any)
+        let sortOption = {};
+        if (sort) {
+            const [field, order] = sort.split(':'); // e.g. "price:asc"
+            sortOption[field] = order === 'desc' ? -1 : 1;
+        }
+
+        // 🔎 Log the query and sort for debugging
+        console.log("🔍 MongoDB Search Query:", JSON.stringify(query, null, 2));
+        console.log("↕️ MongoDB Sort Option:", JSON.stringify(sortOption, null, 2));
+
+        const results = await collection
+            .find(query)
+            .sort(sortOption)
+            .maxTimeMS(5000)
+            .toArray();
+
+        console.log(`✅ Found ${results.length} results in "${collectionName}"`);
+
+        res.send(results);
+
     } catch (err) {
-        logActivity("❌ Error searching in collection:", err);
-        res.status(500).send({ error: "Database request timed out!" });
+        console.error("❌ Error during MongoDB search:", err);
+        res.status(500).send({ error: "Database request failed!" });
     }
 });
+
+//search as u type function
+// app.get('/collection/:collectionName/search', async (req, res) => {
+//     try {
+//         if (!db) {
+//             return res.status(500).send({ error: "Database not connected!" });
+//         }
+        
+//         const { collectionName } = req.params;
+//         const query = req.query.q ? { $text: { $search: req.query.q } } : {};
+        
+//         logActivity("🟢 Searching in collection:", collectionName);
+//         logActivity("🔍 Search query:", req.query.q);
+        
+//         const collection = db.collection(collectionName);
+        
+//                 // Perform the search query
+//         const results = await collection.find(query).maxTimeMS(5000).toArray();
+        
+//         logActivity("✅ Search results:", results.length);
+        
+//             res.send(results);
+//     } catch (err) {
+//         logActivity("❌ Error searching in collection:", err);
+//         res.status(500).send({ error: "Database request timed out!" });
+//     }
+// });
