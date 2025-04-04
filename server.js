@@ -41,7 +41,11 @@ MongoClient.connect('mongodb+srv://AJDC6534:fullstack@cluster-afterschoolacti.qq
     .catch(err => {
         logActivity("Error connecting to MongoDB:", err);
         process.exit(1); // Exit process if DB connection fails
-    });
+});
+
+app.get('/', (req, res, next,) => {
+    res.send('Select a collection, e.g., /collection/messages')
+})
 
 // Serve static files (Images)
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
