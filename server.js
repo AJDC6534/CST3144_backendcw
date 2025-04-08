@@ -193,7 +193,6 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
 });
 
 app.get('/collection/:collectionName/search', async (req, res) => {
-    console.log("Search route triggered!");
     try {
         if (!db) {
             return res.status(500).send({ error: "Database not connected!" });
@@ -214,23 +213,18 @@ app.get('/collection/:collectionName/search', async (req, res) => {
             sortOption[field] = order === 'desc' ? -1 : 1;
         }
 
-        // 🔎 Log the query and sort for debugging
-        console.log("🔍 MongoDB Search Query:", JSON.stringify(query, null, 2));
-        console.log("↕️ MongoDB Sort Option:", JSON.stringify(sortOption, null, 2));
-
+        // Fetch results from the database
         const results = await collection
             .find(query)
             .sort(sortOption)
             .maxTimeMS(5000)
             .toArray();
 
-        console.log(`✅ Found ${results.length} results in "${collectionName}"`);
-
         res.send(results);
-
     } catch (err) {
         console.error("❌ Error during MongoDB search:", err);
         res.status(500).send({ error: "Database request failed!" });
     }
 });
+
 
