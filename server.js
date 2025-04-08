@@ -191,38 +191,6 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
         res.status(500).send({ error: "Failed to update document!" });
     }
 });
-// Delete Document by ID
-app.delete('/collection/:collectionName/:id', async (req, res, next) => {
-    try {
-        if (!db) {
-            return res.status(500).send({ error: "Database not connected!" });
-        }
-
-        const { collectionName, id } = req.params;
-        logActivity("🟢 Deleting document from collection:", collectionName);
-        logActivity("🔍 Document ID:", id);
-
-        // Convert the string ID to an ObjectId
-        const objectId = new ObjectId(id);  // Correct usage of ObjectId
-
-        const collection = db.collection(collectionName);
-
-        // Use the deleteOne method to delete the document
-        const result = await collection.deleteOne({ _id: objectId });
-
-        // Check if the document was deleted
-        if (result.deletedCount === 0) {
-            console.warn("⚠️ No document found with the provided ID.");
-            return res.status(404).send({ error: "Document not found!" });
-        }
-
-        logActivity("✅ Document deleted:", result);
-        res.send({ msg: 'success', deletedCount: result.deletedCount });
-    } catch (err) {
-        logActivity("❌ Error deleting document:", err);
-        res.status(500).send({ error: "Failed to delete document!" });
-    }
-});
 
 app.get('/collection/:collectionName/search', async (req, res) => {
     try {
@@ -264,30 +232,3 @@ app.get('/collection/:collectionName/search', async (req, res) => {
         res.status(500).send({ error: "Database request failed!" });
     }
 });
-
-//search as u type function
-// app.get('/collection/:collectionName/search', async (req, res) => {
-//     try {
-//         if (!db) {
-//             return res.status(500).send({ error: "Database not connected!" });
-//         }
-        
-//         const { collectionName } = req.params;
-//         const query = req.query.q ? { $text: { $search: req.query.q } } : {};
-        
-//         logActivity("🟢 Searching in collection:", collectionName);
-//         logActivity("🔍 Search query:", req.query.q);
-        
-//         const collection = db.collection(collectionName);
-        
-//                 // Perform the search query
-//         const results = await collection.find(query).maxTimeMS(5000).toArray();
-        
-//         logActivity("✅ Search results:", results.length);
-        
-//             res.send(results);
-//     } catch (err) {
-//         logActivity("❌ Error searching in collection:", err);
-//         res.status(500).send({ error: "Database request timed out!" });
-//     }
-// });
