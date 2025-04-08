@@ -77,6 +77,41 @@ app.param('collectionName', async (req, res, next, collectionName) => {
     }
 });
 
+app.get('/collection/:collectionName/search', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).send({ error: "Database not connected!" });
+        }
+
+        const { collectionName } = req.params;
+        const { q, sort } = req.query;
+
+        const collection = db.collection(collectionName);
+
+        // Build the search query
+        const query = q ? { $text: { $search: q } } : {};
+
+        // Build the sort option (if any)
+        let sortOption = {};
+        if (sort) {
+            const [field, order] = sort.split(':'); // e.g. "price:asc"
+            sortOption[field] = order === 'desc' ? -1 : 1;
+        }
+
+        // Fetch results from the database
+        const results = await collection
+            .find(query)
+            .sort(sortOption)
+            .maxTimeMS(5000)
+            .toArray();
+
+        res.send(results);
+    } catch (err) {
+        console.error("❌ Error during MongoDB search:", err);
+        res.status(500).send({ error: "Database request failed!" });
+    }
+});
+
 // Fetch All Documents
 app.get('/collection/:collectionName', async (req, res, next) => {
     try {
@@ -192,39 +227,6 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
     }
 });
 
-// app.get('/collection/:collectionName/search', async (req, res) => {
-//     try {
-//         if (!db) {
-//             return res.status(500).send({ error: "Database not connected!" });
-//         }
 
-//         const { collectionName } = req.params;
-//         const { q, sort } = req.query;
-
-//         const collection = db.collection(collectionName);
-
-//         // Build the search query
-//         const query = q ? { $text: { $search: q } } : {};
-
-//         // Build the sort option (if any)
-//         let sortOption = {};
-//         if (sort) {
-//             const [field, order] = sort.split(':'); // e.g. "price:asc"
-//             sortOption[field] = order === 'desc' ? -1 : 1;
-//         }
-
-//         // Fetch results from the database
-//         const results = await collection
-//             .find(query)
-//             .sort(sortOption)
-//             .maxTimeMS(5000)
-//             .toArray();
-
-//         res.send(results);
-//     } catch (err) {
-//         console.error("❌ Error during MongoDB search:", err);
-//         res.status(500).send({ error: "Database request failed!" });
-//     }
-// });
 
 
