@@ -18,7 +18,7 @@ function logActivity(activity, details = "") {
     });
   
     const logMessage = `[${formattedTime}] ${activity}${details ? ` | ${details}` : ""}`;
-    console.log(logMessage);
+    logActivity(logMessage);
   }
 
 // CORS Middleware
@@ -134,7 +134,7 @@ app.get('/collection/:collectionName/:id', async (req, res, next) => {
         const result = await collection.findOne({ _id: objectId });
 
         if (!result) {
-            console.warn("⚠️ Document not found.");
+            logActivity("⚠️ Document not found.");
             return res.status(404).send({ error: 'Document not found!' });
         }
 
@@ -153,8 +153,8 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
         }
 
         const { collectionName, id } = req.params;
-        console.log("🟢 Updating document in collection:", collectionName);
-        console.log("🔍 Document ID:", id);
+        logActivity("🟢 Updating document in collection:", collectionName);
+        logActivity("🔍 Document ID:", id);
 
         // Validate ID format before converting
         if (!ObjectId.isValid(id)) {
@@ -179,7 +179,7 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
             { $set: updateFields }
         );
 
-        console.log("MongoDB update result:", result);
+        logActivity("MongoDB update result:", result);
 
         if (result.matchedCount === 0) {
             return res.status(404).send({ error: "Document not found!" });
@@ -187,7 +187,7 @@ app.put('/collection/:collectionName/:id', async (req, res) => {
 
         res.send({ msg: 'success', updatedCount: result.modifiedCount });
     } catch (err) {
-        console.error("❌ Error updating document:", err);
+        logActivity("❌ Error updating document:", err);
         res.status(500).send({ error: "Failed to update document!" });
     }
 });
@@ -214,8 +214,8 @@ app.get('/collection/:collectionName/search', async (req, res) => {
         }
 
         // 🔎 Log the query and sort for debugging
-        console.log("🔍 MongoDB Search Query:", JSON.stringify(query, null, 2));
-        console.log("↕️ MongoDB Sort Option:", JSON.stringify(sortOption, null, 2));
+        logActivity("🔍 MongoDB Search Query:", JSON.stringify(query, null, 2));
+        logActivity("↕️ MongoDB Sort Option:", JSON.stringify(sortOption, null, 2));
 
         const results = await collection
             .find(query)
@@ -223,12 +223,12 @@ app.get('/collection/:collectionName/search', async (req, res) => {
             .maxTimeMS(5000)
             .toArray();
 
-        console.log(`✅ Found ${results.length} results in "${collectionName}"`);
+        logActivity(`✅ Found ${results.length} results in "${collectionName}"`);
 
         res.send(results);
 
     } catch (err) {
-        console.error("❌ Error during MongoDB search:", err);
+        logActivity("❌ Error during MongoDB search:", err);
         res.status(500).send({ error: "Database request failed!" });
     }
 });
