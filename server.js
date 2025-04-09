@@ -47,6 +47,18 @@ app.get('/', (req, res, next,) => {
     res.send('Select a collection, e.g., /collection/messages')
 })
 
+app.use((req, res, next) => {
+    console.log(`Method: ${req.method}`);
+    console.log(`URL: ${req.url}`);
+    console.log(`Status: ${res.statusCode}`);
+    if (req.method === "POST" || req.method === "PUT") {
+      console.log(`Body: ${JSON.stringify(req.body, null, 2)}`);
+    }
+   
+    console.log("-------------------------");
+    next();
+  });
+
 // Serve static files (Images)
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
